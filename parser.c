@@ -9,7 +9,6 @@
 #include "matrix.h"
 #include "parser.h"
 
-
 /*======== void parse_file () ==========
 Inputs:   char * filename
           struct matrix * transform,
@@ -58,8 +57,15 @@ void parse_file ( char * filename,
                   screen s) {
 
   FILE *f;
-  char line[256];
+  
   clear_screen(s);
+  char line[256];
+  
+
+  color c;
+  c.red = 255;
+  c.green = 255;
+  c.blue = 255;
 
   if ( strcmp(filename, "stdin") == 0 ) 
     f = stdin;
@@ -68,7 +74,87 @@ void parse_file ( char * filename,
   
   while ( fgets(line, 255, f) != NULL ) {
     line[strlen(line)-1]='\0';
+
     printf(":%s:\n",line);
+    
+    if(!strcmp("line", line)) {
+      fgets(line, 255, f); 
+      line[strlen(line)-1]='\0';
+      printf(":%s:\n",line);
+
+      double x0, y0, z0, x1, y1, z1; 
+      sscanf(line, "%lf %lf %lf %lf %lf %lf", &x0, &y0, &z0, &x1, &y1, &z1);
+      add_edge(edges, x0, y0, z0, x1, y1, z1);
+    }
+    
+    if (!strcmp("ident", line)) {
+      ident(transform);
+    }
+
+    if (!strcmp("scale", line)) {
+      fgets(line, 255, f); 
+      line[strlen(line)-1]='\0';
+      printf(":%s:\n",line);
+
+      double x, y, z;
+      sscanf(line, "%lf %lf %lf", &x, &y, &z);
+      struct matrix *tmp = make_scale(x, y, z);
+      matrix_mult(tmp, transform);
+      free_matrix(tmp);
+    }
+
+    if (!strcmp("move", line)) {
+      fgets(line, 255, f); 
+      line[strlen(line)-1]='\0';
+      printf(":%s:\n",line);
+
+      double x, y, z;
+      sscanf(line, "%lf %lf %lf", &x, &y, &z);
+      struct matrix *tmp = make_translate(x, y, z);
+      matrix_mult(tmp, transform);
+      free_matrix(tmp);
+    }
+
+    if (!strcmp("rotate", line)) {
+      fgets(line, 255, f); 
+      line[strlen(line)-1]='\0';
+      printf(":%s:\n",line);
+
+      char ax; 
+      double th; 
+      struct matrix *tmp;
+
+      sscanf(line, "%c %lf", &ax, &th);
+      if ('x' == ax) tmp = make_rotX(th);
+      else if ('y' == ax) tmp = make_rotY(th);
+      else if ('z' == ax) tmp = make_rotZ(th);
+
+      matrix_mult(tmp, transform);
+      free_matrix(tmp);
+    }
+
+    if (!strcmp("apply", line)) {
+      matrix_mult(transform, edges);
+    }
+
+    if (!strcmp("display", line)) {
+      clear_screen(s);
+      draw_lines(edges, s, c);
+      display(s);
+    }
+
+    if (!strcmp("save", line)) {
+      fgets(line, 255, f); 
+      line[strlen(line)-1]='\0';
+      printf(":%s:\n",line);
+
+      clear_screen(s);
+      draw_lines(edges, s, c);
+      save_extension(s, line);
+      
+    }
+
+    
   }
 }
   

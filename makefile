@@ -5,12 +5,13 @@ CC= gcc
 
 run: all
 	./main script
+	./main gem
 
 all: $(OBJECTS)
 	$(CC) -o main $(OBJECTS) $(LDFLAGS)
 
 main.o: main.c display.h draw.h ml6.h matrix.h parser.h
-	$(CC) -c main.c
+	$(CC) -c -g main.c
 
 draw.o: draw.c draw.h display.h ml6.h matrix.h
 	$(CC) $(CFLAGS) -c draw.c
